@@ -10,6 +10,11 @@ def test_simulated_live_source_commissions_through_common_pipeline():
     assert preview.readiness["ready_for_core_analysis"] is True
     assert "S1" in preview.topology.stages
     assert "V1" in preview.topology.stages["S1"].vessels
+    assert any(
+        proposal.source_name == "UF01_Stage1_Vessel1_Feed_Pressure"
+        and proposal.detected_unit == "bar"
+        for proposal in preview.proposals
+    )
 
     values = source.read_tags([
         "UF01_Stage1_Vessel1_Feed_Pressure",
