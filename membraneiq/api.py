@@ -4,6 +4,8 @@ from pathlib import Path
 import tempfile
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from membraneiq.api_models import AnalysisRequest
@@ -24,6 +26,9 @@ app = FastAPI(
     version="0.2.0",
     description="Vendor-neutral membrane commissioning and condition intelligence API",
 )
+
+WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 
 SYSTEM_STORE = SystemConfigStore(Path("data/config/systems.json"))
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
@@ -50,6 +55,11 @@ class SaveSystemRequest(BaseModel):
     topology: dict
     observability: dict
     metadata: dict = Field(default_factory=dict)
+
+
+@app.get("/", include_in_schema=False)
+def web_app() -> FileResponse:
+    return FileResponse(WEB_DIR / "index.html")
 
 
 @app.get("/health")
