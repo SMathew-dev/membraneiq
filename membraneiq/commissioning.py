@@ -4,9 +4,10 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Literal
 
-from membraneiq.autocommission import data_readiness, discover_signals
-from membraneiq.ingestion import CSVIngestor
+from membraneiq.autocommission import data_readiness
+from membraneiq.ingestion import preview_historical_file
 from membraneiq.live_sources import ReadOnlyLiveSource
+from membraneiq.observability import assess_observability
 from membraneiq.topology_discovery import reconstruct_topology, topology_summary
 
 
@@ -17,6 +18,7 @@ class CommissioningReport:
     source_label: str
     readiness: dict
     topology: dict
+    observability: dict
     auto_accepted_mappings: dict[str, str]
     review_required: list[dict]
     can_start_analysis: bool
@@ -28,10 +30,16 @@ class CommissioningReport:
 def _report(system_id: str, mode: str, label: str, proposals) -> CommissioningReport:
     readiness = data_readiness(proposals)
     topology = reconstruct_topology(proposals, system_id=system_id)
+    topology_info = topology_summary(topology)
     accepted = {
         p.source_name: p.canonical_signal
         for p in proposals
         if p.canonical_signal and p.confidence >= 0.85
+    }
+    mapped = {
+        p.canonical_signal
+        for p in proposals
+        if p.canonical_signal and p.confidence >= 0.65
     }
     review = [
         {
@@ -44,21 +52,36 @@ def _report(system_id: str, mode: str, label: str, proposals) -> CommissioningRe
         for p in proposals
         if not p.canonical_signal or p.confidence < 0.85
     ]
+    observability = assess_observability(
+        mapped,
+        stages_detected=topology_info["stages_detected"],
+        vessels_detected=topology_info["vessels_detected"],
+    )
     return CommissioningReport(
         system_id=system_id,
         source_mode=mode,
         source_label=label,
         readiness=readiness,
-        topology=topology_summary(topology),
+        topology=topology_info,
+        observability=observability.to_dict(),
         auto_accepted_mappings=accepted,
         review_required=review,
         can_start_analysis=readiness["ready_for_core_analysis"],
     )
 
 
-def commission_csv(path: str | Path, system_id: str = "MEMBRANE-01") -> CommissioningReport:
-    preview = CSVIngestor().preview(path)
+def commission_file(
+    path: str | Path,
+    system_id: str = "MEMBRANE-01",
+    sheet_name: str | int | None = 0,
+) -> CommissioningReport:
+    preview = preview_historical_file(path, sheet_name=sheet_name)
     return _report(system_id, "upload", str(path), preview.proposals)
+
+
+def commission_csv(path: str | Path, system_id: str = "MEMBRANE-01") -> CommissioningReport:
+    """Backward-compatible alias for existing callers."""
+    return commission_file(path, system_id=system_id)
 
 
 def commission_live(source: ReadOnlyLiveSource, system_id: str = "MEMBRANE-01") -> CommissioningReport:
