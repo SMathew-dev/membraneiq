@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MembraneIQ</title>
+  <meta name="description" content="Vendor-neutral membrane commissioning and condition intelligence." />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">MIQ</div>
+        <div>
+          <strong>MembraneIQ</strong>
+          <span>Membrane intelligence</span>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Primary navigation">
+        <button class="nav-item active" data-view="overview">Overview</button>
+        <button class="nav-item" data-view="commission">New system</button>
+        <button class="nav-item" data-view="systems">Systems</button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <span class="status-dot"></span>
+        <div><strong>Read-only by default</strong><small>No equipment control commands</small></div>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Industrial membrane observability</p>
+          <h1 id="page-title">Overview</h1>
+        </div>
+        <button id="new-system-shortcut" class="button primary">+ New system</button>
+      </header>
+
+      <section id="view-overview" class="view active">
+        <div class="hero card">
+          <div>
+            <span class="pill">MembraneIQ v0.2</span>
+            <h2>Understand the membrane system before diagnosing it.</h2>
+            <p>Connect plant data or upload historian exports. MembraneIQ discovers signals, proposes topology, checks diagnostic resolution, and turns supported process data into condition intelligence.</p>
+            <div class="hero-actions">
+              <button class="button primary" data-go="commission">Commission a system</button>
+              <button id="refresh-overview" class="button ghost">Refresh status</button>
+            </div>
+          </div>
+          <div class="flow-diagram" aria-label="MembraneIQ workflow">
+            <div>Connect / Upload</div><span>→</span>
+            <div>AutoCommission</div><span>→</span>
+            <div>Confirm</div><span>→</span>
+            <div>Analyze</div><span>→</span>
+            <div>Act</div>
+          </div>
+        </div>
+
+        <div class="metric-grid">
+          <article class="metric card"><span>API</span><strong id="api-status">Checking…</strong><small>Application service</small></article>
+          <article class="metric card"><span>Systems</span><strong id="system-count">—</strong><small>Commissioned systems</small></article>
+          <article class="metric card"><span>Plant access</span><strong>Read-only</strong><small>Observe and recommend</small></article>
+          <article class="metric card"><span>Resolution</span><strong>Evidence-based</strong><small>Skid → stage → vessel</small></article>
+        </div>
+
+        <div class="card section-card">
+          <div class="section-heading">
+            <div><p class="eyebrow">Recent configuration</p><h3>Commissioned systems</h3></div>
+            <button class="text-button" data-go="systems">View all</button>
+          </div>
+          <div id="overview-systems" class="system-list empty-state">No systems loaded yet.</div>
+        </div>
+      </section>
+
+      <section id="view-commission" class="view">
+        <div class="section-heading page-heading">
+          <div><p class="eyebrow">AutoCommission</p><h2>New membrane system</h2><p>Choose the fastest safe route into the same canonical MembraneIQ data model.</p></div>
+        </div>
+
+        <div class="route-grid">
+          <article class="route-card card">
+            <div class="route-icon">↑</div>
+            <p class="eyebrow">Historical / pilot</p>
+            <h3>Upload process data</h3>
+            <p>CSV, XLSX, or XLSM historian exports. MembraneIQ will inspect columns without changing the source file.</p>
+            <label class="field-label" for="system-id-upload">System ID</label>
+            <input id="system-id-upload" class="input" value="MEMBRANE-01" />
+            <label class="file-drop" for="process-file">
+              <input id="process-file" type="file" accept=".csv,.xlsx,.xlsm" />
+              <strong>Select process data</strong>
+              <span>Up to 25 MB</span>
+            </label>
+            <button id="upload-button" class="button primary full">Inspect upload</button>
+          </article>
+
+          <article class="route-card card">
+            <div class="route-icon">⌁</div>
+            <p class="eyebrow">Continuous monitoring</p>
+            <h3>Connect live plant</h3>
+            <p>Read-only plant data integration. OPC UA is the first industrial adapter; historian/database adapters follow the same interface.</p>
+            <label class="field-label" for="system-id-live">System ID</label>
+            <input id="system-id-live" class="input" value="UF-01" />
+            <div class="connection-note">
+              <strong>Development connection</strong>
+              <span>Exercise the complete live commissioning path using the built-in simulated PLC source.</span>
+            </div>
+            <button id="live-demo-button" class="button primary full">Run live connection demo</button>
+            <small class="muted">No write interface is exposed by MembraneIQ.</small>
+          </article>
+        </div>
+
+        <div id="commissioning-result" class="card result-card hidden">
+          <div class="section-heading">
+            <div><p class="eyebrow">Commissioning result</p><h3 id="result-title">System preview</h3></div>
+            <span id="result-badge" class="pill">Review</span>
+          </div>
+          <div id="result-metrics" class="metric-grid compact"></div>
+          <div class="result-columns">
+            <div><h4>Signal mapping</h4><div id="mapping-table" class="table-wrap"></div></div>
+            <div><h4>Diagnostic capability</h4><div id="observability-panel" class="capability-panel"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-systems" class="view">
+        <div class="section-heading page-heading">
+          <div><p class="eyebrow">Asset configuration</p><h2>Membrane systems</h2><p>Saved commissioning configuration is the stable boundary for historical and live analysis.</p></div>
+          <button id="refresh-systems" class="button ghost">Refresh</button>
+        </div>
+        <div id="systems-list" class="system-grid empty-state">No commissioned systems saved.</div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
