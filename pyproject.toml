@@ -1,11 +1,22 @@
 [project]
 name = "membraneiq"
-version = "0.1.0"
-description = "Dairy membrane health and fouling intelligence research prototype"
+version = "0.2.0"
+description = "Vendor-neutral membrane commissioning, health, fouling, and lifecycle intelligence prototype"
 requires-python = ">=3.10"
 dependencies = [
   "numpy>=1.26",
   "pandas>=2.2",
+]
+
+[project.optional-dependencies]
+industrial = [
+  "asyncua>=1.1",
+]
+excel = [
+  "openpyxl>=3.1",
+]
+dev = [
+  "pytest>=8.0",
 ]
 
 [tool.pytest.ini_options]
