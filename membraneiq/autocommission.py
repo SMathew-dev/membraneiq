@@ -6,29 +6,38 @@ from typing import Iterable
 
 
 SIGNAL_PATTERNS = {
-    "feed_pressure": [r"feed.*press", r"inlet.*press", r"pit", r"pressure.*feed"],
+    "timestamp": [r"^timestamp$", r"^date time$", r"^datetime$", r"^time stamp$", r"^time$"],
+    "feed_pressure": [r"feed.*press", r"inlet.*press", r"pressure.*feed"],
     "retentate_pressure": [r"ret.*press", r"concentrate.*press", r"outlet.*press"],
-    "permeate_pressure": [r"perm.*press"],
-    "feed_flow": [r"feed.*flow", r"inlet.*flow", r"fit"],
+    "permeate_pressure": [r"perm.*press", r"filtrate.*press"],
+    "feed_flow": [r"feed.*flow", r"inlet.*flow"],
     "permeate_flow": [r"perm.*flow", r"filtrate.*flow"],
     "temperature": [r"temp", r"temperature", r"tt\d*"],
     "feed_conductivity": [r"feed.*cond", r"inlet.*cond"],
     "permeate_conductivity": [r"perm.*cond", r"filtrate.*cond"],
-    "cip_state": [r"cip", r"clean.*state", r"cleaning"],
+    "cip_state": [r"cip.*state", r"clean.*state", r"cleaning.*state", r"cip active"],
 }
 
 UNIT_HINTS = {
     "bar": "bar",
     "psi": "psi",
     "kpa": "kPa",
+    "mpa": "MPa",
     "lph": "L/h",
     "l/h": "L/h",
+    "l/min": "L/min",
+    "m3/h": "m3/h",
+    "m³/h": "m3/h",
     "gpm": "gpm",
     "degc": "C",
     "°c": "C",
     "celsius": "C",
+    "degf": "F",
+    "°f": "F",
+    "fahrenheit": "F",
     "ms/cm": "mS/cm",
     "us/cm": "uS/cm",
+    "µs/cm": "uS/cm",
 }
 
 REQUIRED_FOR_CORE = {
@@ -54,7 +63,7 @@ class SignalProposal:
 
 
 def _normalize(text: str) -> str:
-    return re.sub(r"[^a-z0-9°/]+", " ", text.lower()).strip()
+    return re.sub(r"[^a-z0-9°µ³/]+", " ", text.lower()).strip()
 
 
 def _extract_topology_hints(name: str) -> tuple[str | None, str | None]:
@@ -85,8 +94,9 @@ def propose_signal_mapping(source_name: str) -> SignalProposal:
         matches = sum(bool(re.search(pattern, normalized)) for pattern in patterns)
         if matches:
             confidence = min(0.98, 0.58 + 0.18 * matches)
-            # More explicit names deserve higher confidence than generic ISA tags.
-            if any(word in normalized for word in signal.split("_")):
+            if signal == "timestamp":
+                confidence = 0.98
+            elif any(word in normalized for word in signal.split("_")):
                 confidence = min(0.99, confidence + 0.12)
             candidates.append((signal, confidence))
 
@@ -106,7 +116,7 @@ def propose_signal_mapping(source_name: str) -> SignalProposal:
 
 
 def discover_signals(source_names: Iterable[str]) -> list[SignalProposal]:
-    return [propose_signal_mapping(name) for name in source_names]
+    return [propose_signal_mapping(str(name)) for name in source_names]
 
 
 def data_readiness(proposals: list[SignalProposal], confidence_floor: float = 0.65) -> dict:
@@ -132,6 +142,7 @@ def data_readiness(proposals: list[SignalProposal], confidence_floor: float = 0.
         "missing_core_signals": missing,
         "diagnostic_resolution_candidate": resolution,
         "ready_for_core_analysis": not missing,
+        "timestamp_available": "timestamp" in mapped,
         "requires_human_confirmation": any(
             p.canonical_signal is None or p.confidence < 0.85 for p in proposals
         ),
