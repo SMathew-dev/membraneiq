@@ -1,54 +1,74 @@
-# MembraneIQ v0.1
+# MembraneIQ
 
-**MembraneIQ** is a dairy membrane health and fouling intelligence prototype.
+**MembraneIQ** is a dairy membrane health, fouling, cleaning-recovery, and lifecycle intelligence prototype.
 
-The v0.1 goal is intentionally narrow:
+The project is being built in stages, with every metric tied to an explicit engineering calculation or validated model rather than a decorative AI score.
 
-1. Generate realistic simulated UF/RO process data.
-2. Establish a clean membrane baseline.
-3. Calculate engineering indicators such as TMP, flux, permeability, normalized permeability, pressure drop, and rejection.
-4. Detect progressive fouling.
-5. Quantify recovery after CIP.
-6. Produce a defensible membrane-system health score.
+## Current capabilities
 
-This version is **not** a polished dashboard and does not pretend to diagnose individual membrane elements when the available instrumentation would not support that resolution.
+### v0.1 — Core health engine
 
-## Why this project exists
+- Generate realistic simulated UF/RO process data.
+- Establish a clean operating baseline.
+- Calculate TMP, flux, permeability, normalized permeability, pressure drop, and rejection.
+- Detect progressive performance deterioration.
+- Quantify recovery after CIP.
+- Produce a transparent membrane-system health assessment.
 
-Industrial membrane systems are often judged using a mixture of operating thresholds, trends, cleaning history, and operator experience. MembraneIQ explores whether process data can be turned into a consistent health record that supports future **RUN / CLEAN / INSPECT / REPLACE** decisions.
+### v0.2 — Membrane Health Records
 
-## v0.1 architecture
+The current development branch adds persistent condition history for membrane assets and stage/vessel tracking.
+
+A health record can retain:
+
+- asset identity and location
+- installation metadata
+- operating hours
+- condition snapshots
+- normalized permeability deterioration
+- TMP and pressure-drop changes
+- CIP count
+- CIP recovery history
+- inspection/replacement events
+- current health state
+- estimated degradation rate
+
+Stage and vessel summaries can then identify which part of a membrane train deserves attention first.
+
+> Important: MembraneIQ only reports health at the finest resolution actually supported by the available measurements. The software does not claim that conventional skid-level instrumentation can magically diagnose an individual membrane element.
+
+## Engineering architecture
 
 ```text
-Synthetic Dairy UF/RO Simulator
+Process / simulated data
         ↓
-Engineering Calculations
+Engineering calculations
         ↓
-Clean Baseline
+Clean baseline
         ↓
-Health / Fouling Engine
+Health + fouling assessment
         ↓
-CIP Recovery Analysis
+CIP recovery analysis
         ↓
-MembraneIQ Assessment
+Membrane Health Record
+        ↓
+Stage / vessel condition tracking
+        ↓
+Future RUN / CLEAN / INSPECT / REPLACE engine
 ```
 
-## Calculated variables
+## Core calculations
 
 - Transmembrane pressure (TMP)
 - Flux
 - Permeability
 - Temperature-normalized permeability
-- Pressure drop
+- Feed-side pressure drop
 - Conductivity rejection
+- Post-CIP permeability recovery
+- Recent degradation/fouling trend
 
-## Health score
-
-The prototype combines deterioration relative to the clean baseline across normalized permeability, TMP, pressure drop, rejection, recent fouling trend, and latest CIP recovery.
-
-The v0.1 health score is a **transparent engineering heuristic**, not an AI-generated number.
-
-## Included scenarios
+## Included simulation scenarios
 
 - healthy operation
 - gradual fouling
@@ -73,35 +93,38 @@ pytest
 ## Current limitations
 
 - Data are simulated.
-- Health is currently calculated at skid/system level.
+- v0.1 process inference is primarily skid/system level.
+- v0.2 stage/vessel records provide the data model and aggregation framework; real localization requires suitable instrumentation.
 - Fouling mechanism classification is not yet implemented.
 - Remaining useful life is not yet implemented.
 - Economic optimization is not yet implemented.
-- No claim is made that individual membrane element health can be inferred without suitable instrumentation.
 
 ## Roadmap
 
-### v0.2
-- Membrane Passport
-- Stage/vessel histories
-- Multiple independent runs
-- Persistent CIP recovery history
+### v0.2 — Membrane Health Records + stage/vessel tracking
+- persistent asset condition history
+- stage/vessel summaries
+- CIP recovery history
+- asset attention ranking
+- multi-run histories
 
-### v0.3
-- Statistical anomaly detection
-- Fouling-rate model
-- Remaining useful run-time estimate
+### v0.3 — Predictive condition intelligence
+- statistical anomaly detection
+- fouling-rate model
+- remaining useful run-time estimate
+- abnormal deterioration detection
 
-### v0.4
-- RUN / CLEAN decision logic
-- Economic cost model
+### v0.4 — Decision support
+- RUN / CLEAN / INSPECT / REPLACE logic
+- economic cost model
+- cleaning-timing optimization
 
 ### Later research
-- Fouling fingerprint classification
-- Localization
-- Retrofit sensing
-- Individual membrane-level health where instrumentation supports it
-- Real/anonymized dairy validation
+- fouling fingerprint classification
+- improved localization
+- retrofit sensing
+- individual membrane-level condition inference where instrumentation supports it
+- real/anonymized dairy validation
 
 ## Disclaimer
 
