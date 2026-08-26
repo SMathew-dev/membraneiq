@@ -13,6 +13,7 @@ from membraneiq.normalization import (
 
 
 CANONICAL_OUTPUT_COLUMNS = {
+    "timestamp": "timestamp",
     "feed_pressure": "feed_pressure_bar",
     "retentate_pressure": "retentate_pressure_bar",
     "permeate_pressure": "permeate_pressure_bar",
@@ -47,6 +48,10 @@ class StandardizationReport:
 
 
 def _convert_series(series: pd.Series, signal: str, unit: str | None) -> pd.Series:
+    if signal == "timestamp":
+        parsed = pd.to_datetime(series, errors="coerce", utc=True)
+        return parsed
+
     numeric = pd.to_numeric(series, errors="coerce")
     if signal == "cip_state":
         return numeric.fillna(0).astype(int)
@@ -120,6 +125,8 @@ def standardize_dataframe(
     for signal, (source, unit) in selected.items():
         output_column = CANONICAL_OUTPUT_COLUMNS[signal]
         result[output_column] = _convert_series(df[source], signal, unit)
+        if signal == "timestamp" and result[output_column].isna().all():
+            warnings.append(f"{source}: timestamp values could not be parsed")
 
     return result, StandardizationReport(
         standardized_columns=list(result.columns),
