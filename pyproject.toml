@@ -1,0 +1,13 @@
+[project]
+name = "membraneiq"
+version = "0.1.0"
+description = "Dairy membrane health and fouling intelligence research prototype"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.26",
+  "pandas>=2.2",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
