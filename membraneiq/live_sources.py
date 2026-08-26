@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from membraneiq.autocommission import SignalProposal, data_readiness, discover_signals
+from membraneiq.autocommission import SignalProposal, data_readiness, propose_signal_mapping
 from membraneiq.topology_discovery import TopologyProposal, reconstruct_topology
 
 
@@ -58,8 +58,17 @@ class ReadOnlyLiveSource(ABC):
 
     def commissioning_preview(self, system_id: str = "MEMBRANE-01") -> LiveCommissioningPreview:
         tags = self.browse_tags()
-        labels = [f"{tag.name} {tag.unit or ''}".strip() for tag in tags]
-        proposals = discover_signals(labels)
+        proposals: list[SignalProposal] = []
+        for tag in tags:
+            classification_text = f"{tag.name} {tag.unit or ''}".strip()
+            proposal = propose_signal_mapping(classification_text)
+            # Preserve the exact PLC/HMI tag identifier for future reads while
+            # still letting the classifier use engineering-unit metadata.
+            proposal.source_name = tag.name
+            if tag.unit and proposal.detected_unit is None:
+                proposal.detected_unit = tag.unit
+            proposals.append(proposal)
+
         topology = reconstruct_topology(proposals, system_id=system_id)
         return LiveCommissioningPreview(
             source_type=self.source_type,
