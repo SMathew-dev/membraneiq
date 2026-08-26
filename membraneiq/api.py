@@ -95,6 +95,7 @@ def preview_columns(request: ColumnCommissioningRequest) -> dict:
         "system_id": request.system_id,
         "readiness": data_readiness(proposals),
         "topology": topology_info,
+        "topology_model": topology.to_dict(),
         "observability": observability_info.to_dict(),
         "proposals": [proposal.to_dict() for proposal in proposals],
     }
@@ -136,6 +137,7 @@ async def commissioning_upload(
             "columns": preview.columns,
             "readiness": preview.readiness,
             "topology": topology_info,
+            "topology_model": topology.to_dict(),
             "observability": assess_observability(
                 mapped,
                 stages_detected=topology_info["stages_detected"],
@@ -164,6 +166,7 @@ def live_demo(system_id: str = "UF-01") -> dict:
             "endpoint": preview.endpoint,
             "readiness": preview.readiness,
             "topology": topology_info,
+            "topology_model": preview.topology.to_dict(),
             "observability": assess_observability(
                 {
                     p.canonical_signal
